@@ -95,15 +95,17 @@ export function ServiceCard({ item, index, total, isExpanded, onToggle }) {
         <article
             className="relative flex flex-row md:flex-col w-full min-w-full h-[52vh] min-h-[350px] max-h-[440px] md:h-[100dvh] md:min-h-0 md:max-h-none md:w-[45vw] md:min-w-[45vw] overflow-hidden border-b md:border-b-0 md:border-r border-black/30 select-none shrink-0 shadow-2xl cursor-pointer md:cursor-default"
             onClick={onToggle}
+            style={{
+                backgroundColor: item.color,
+            }}
         >
             {/* ================= 1. MOBILE: LEFT (~60%) / DESKTOP: BOTTOM SECTION ================= */}
             <div
                 style={{
                     backgroundColor: item.color,
                 }}
-                className={`order-1 md:order-2 flex flex-col justify-between p-5 sm:p-6 md:p-8 lg:p-10 text-white w-[60%] sm:w-[58%] md:w-full overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                    isExpanded ? "md:h-[32vh]" : "md:h-[60vh]"
-                }`}
+                className={`order-1 md:order-2 flex flex-col justify-between p-5 sm:p-6 md:p-8 lg:p-10 text-white w-[60%] sm:w-[58%] md:w-full overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${isExpanded ? "md:h-[32vh]" : "md:h-[60vh]"
+                    }`}
             >
                 {/* ---------- MOBILE VIEW CONTENT (Matches Screenshot) ---------- */}
                 <div className="flex md:hidden flex-col justify-between h-full w-full">
@@ -159,11 +161,10 @@ export function ServiceCard({ item, index, total, isExpanded, onToggle }) {
                 <div className="hidden md:flex md:flex-col md:justify-between md:h-full">
                     {/* Detailed Content (Reveals when isExpanded is true) */}
                     <div
-                        className={`transition-all duration-500 ease-out ${
-                            isExpanded
-                                ? "opacity-100 translate-y-0 pointer-events-auto"
-                                : "opacity-0 -translate-y-4 pointer-events-none max-h-0 overflow-hidden"
-                        }`}
+                        className={`transition-all duration-500 ease-out ${isExpanded
+                            ? "opacity-100 translate-y-0 pointer-events-auto"
+                            : "opacity-0 -translate-y-4 pointer-events-none max-h-0 overflow-hidden"
+                            }`}
                     >
                         <div className="flex items-start justify-between gap-4">
                             {/* 2x2 Sub-Services Grid */}
@@ -196,9 +197,8 @@ export function ServiceCard({ item, index, total, isExpanded, onToggle }) {
                                     height="14"
                                     viewBox="0 0 14 14"
                                     fill="none"
-                                    className={`transition-transform duration-300 ${
-                                        isExpanded ? "rotate-45" : "hover:rotate-90"
-                                    }`}
+                                    className={`transition-transform duration-300 ${isExpanded ? "rotate-45" : "hover:rotate-90"
+                                        }`}
                                 >
                                     <path
                                         d="M7 1V13M1 7H13"
@@ -229,8 +229,7 @@ export function ServiceCard({ item, index, total, isExpanded, onToggle }) {
                 </div>
             </div>
 
-            {/* ================= 2. MOBILE: RIGHT (~40%) / DESKTOP: TOP SECTION (IMAGE) ================= */}
-            <div className="order-2 md:order-1 relative w-[40%] sm:w-[42%] md:w-full h-full md:flex-1 overflow-hidden bg-black/40">
+            <div className="service-card-image order-2 md:order-1 relative w-[40%] sm:w-[42%] md:w-full h-full md:flex-1 overflow-hidden bg-black/40 will-change-transform">
                 <Image
                     src={item.image}
                     alt={item.title}

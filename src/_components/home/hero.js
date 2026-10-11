@@ -54,8 +54,10 @@ export default function Hero() {
 
     const handleToggleCard = (index) => {
         setExpandedCards((prev) => {
-            const next = [...prev];
-            next[index] = !next[index];
+            const next = new Array(servicesData.length).fill(false);
+            if (!prev[index]) {
+                next[index] = true;
+            }
             return next;
         });
     };
@@ -79,6 +81,8 @@ export default function Hero() {
             const totalTrackWidth = servicesData.length * cardWidth;
             const totalDistance = screenWidth + totalTrackWidth - cardWidth;
 
+            // Clear any mobile inline styles on images
+            gsap.set(".service-card-image", { clearProps: "all" });
             gsap.set(cardsTrack, { left: "100vw", x: 0, clearProps: "transform" });
 
             const checkCardPositions = () => {
@@ -139,7 +143,7 @@ export default function Hero() {
             ScrollTrigger.refresh();
         });
 
-        // 2. MOBILE VIEW (< 768px): Natural Vertical Flow with ScrollTrigger reveals
+        // 2. MOBILE VIEW (< 768px): Overlap Hero + Image Slide-in from Right at 20vh
         mm.add("(max-width: 767px)", () => {
             gsap.set(cardsTrack, { clearProps: "all" });
             gsap.set(pinWrapper, { clearProps: "all" });
@@ -149,26 +153,80 @@ export default function Hero() {
             const cards = cardsTrack.children;
             const triggers = [];
 
+            // A. Hero Overlap effect: dim hero content as services overlap hero
+            const heroOverlapTrigger = ScrollTrigger.create({
+                trigger: cardsTrack,
+                start: "top bottom",
+                end: "top top",
+                scrub: true,
+                onUpdate: (self) => {
+                    gsap.set(".hero-content-area", {
+                        opacity: 1 - 0.75 * self.progress,
+                        scale: 1 - 0.05 * self.progress,
+                    });
+                    gsap.set(".hero-indicators", {
+                        opacity: 1 - self.progress,
+                    });
+                },
+            });
+            triggers.push(heroOverlapTrigger);
+
+            // B. Card Image Reveal: slides in from the right when card enters 20vh into screen
             Array.from(cards).forEach((card, idx) => {
+                const imgBox = card.querySelector(".service-card-image");
+
+                // Initially position off to the right
+                if (imgBox) {
+                    gsap.set(imgBox, { x: "100%", opacity: 0 });
+                }
+
+                // Trigger at 20vh of the screen (top 80% = card enters 20vh into viewport)
                 const trigger = ScrollTrigger.create({
                     trigger: card,
-                    start: "top 65%",
-                    end: "bottom 35%",
+                    start: "top 80%",
+                    end: "bottom 20%",
                     onEnter: () => {
-                        setExpandedCards((prev) => {
-                            if (prev[idx]) return prev;
-                            const next = [...prev];
+                        if (imgBox) {
+                            gsap.to(imgBox, {
+                                x: "0%",
+                                opacity: 1,
+                                duration: 0.75,
+                                ease: "power3.out",
+                                overwrite: "auto",
+                            });
+                        }
+                        setExpandedCards(() => {
+                            const next = new Array(servicesData.length).fill(false);
                             next[idx] = true;
                             return next;
                         });
                     },
                     onEnterBack: () => {
-                        setExpandedCards((prev) => {
-                            if (prev[idx]) return prev;
-                            const next = [...prev];
+                        if (imgBox) {
+                            gsap.to(imgBox, {
+                                x: "0%",
+                                opacity: 1,
+                                duration: 0.75,
+                                ease: "power3.out",
+                                overwrite: "auto",
+                            });
+                        }
+                        setExpandedCards(() => {
+                            const next = new Array(servicesData.length).fill(false);
                             next[idx] = true;
                             return next;
                         });
+                    },
+                    onLeaveBack: () => {
+                        if (imgBox) {
+                            gsap.to(imgBox, {
+                                x: "100%",
+                                opacity: 0,
+                                duration: 0.45,
+                                ease: "power2.in",
+                                overwrite: "auto",
+                            });
+                        }
                     },
                 });
                 triggers.push(trigger);
@@ -178,6 +236,7 @@ export default function Hero() {
 
             return () => {
                 triggers.forEach((t) => t.kill());
+                gsap.set(".service-card-image", { clearProps: "all" });
             };
         });
 
@@ -219,7 +278,7 @@ export default function Hero() {
                 className="relative w-full md:h-[100dvh] md:min-h-[100dvh] md:overflow-hidden select-none bg-[#090807] text-white"
             >
                 {/* ================= HERO BACKGROUND & CONTENT ================= */}
-                <div className="relative md:absolute md:inset-0 z-0 h-[100dvh] min-h-[100dvh] w-full overflow-hidden">
+                <div className="sticky top-0 md:absolute md:inset-0 z-0 h-[100dvh] min-h-[100dvh] w-full overflow-hidden">
                     {/* Background Images with smooth cross-fade */}
                     {funkyItems.map((item, index) => (
                         <Image
@@ -229,11 +288,10 @@ export default function Hero() {
                             fill
                             priority={index === 0}
                             sizes="100vw"
-                            className={`scale-105 object-cover transition-all duration-700 ease-out ${
-                                activeFunkyIndex === index
-                                    ? "opacity-100 blur-0"
-                                    : "opacity-0 blur-sm pointer-events-none"
-                            }`}
+                            className={`scale-105 object-cover transition-all duration-700 ease-out ${activeFunkyIndex === index
+                                ? "opacity-100 blur-0"
+                                : "opacity-0 blur-sm pointer-events-none"
+                                }`}
                         />
                     ))}
 
@@ -288,11 +346,10 @@ export default function Hero() {
                                     key={item.image}
                                     type="button"
                                     onClick={() => setActiveFunkyIndex(index)}
-                                    className={`h-2 w-8 rounded-full transition-all duration-300 ${
-                                        activeFunkyIndex === index
-                                            ? "bg-orange-500"
-                                            : "bg-white/30 hover:bg-white/60"
-                                    }`}
+                                    className={`h-2 w-8 rounded-full transition-all duration-300 ${activeFunkyIndex === index
+                                        ? "bg-orange-500"
+                                        : "bg-white/30 hover:bg-white/60"
+                                        }`}
                                     aria-label={`Show ${item.line2} ${item.line3}`}
                                 />
                             ))}
@@ -303,7 +360,7 @@ export default function Hero() {
                 {/* ================= SERVICES CARDS TRACK (Vertical Rows on Mobile / Horizontal on Desktop) ================= */}
                 <div
                     ref={cardsTrackRef}
-                    className="relative w-full flex flex-col md:absolute md:top-0 md:left-0 md:h-full md:flex-row z-20 pointer-events-auto will-change-transform"
+                    className="relative left-0 w-full flex flex-col md:absolute md:top-0 md:left-[100vw] md:h-full md:flex-row md:w-auto z-20 pointer-events-auto will-change-transform shadow-[0_-25px_60px_rgba(0,0,0,0.85)]"
                 >
                     {servicesData.map((service, index) => (
                         <ServiceCard
